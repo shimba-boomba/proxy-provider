@@ -11,7 +11,7 @@ const PROXY_LIST_DEST = "proxy-servers.txt"
 
 const TEST_PAGE = "https://suggests.avia.yandex.ru/avia?query=Valencia&lang=ru"
 
-const TIMEOUT_MS = 1000
+const TIMEOUT_MS = 100
 
 func testServers(proxyServers []string, channel chan string) {
   for _, proxy := range proxyServers {
@@ -21,30 +21,30 @@ func testServers(proxyServers []string, channel chan string) {
 
 func testServer(proxy string, channel chan string) {
   request := gorequest.New()
-  
+
   request.Proxy("http://" + proxy)
   request.Timeout(TIMEOUT_MS * time.Millisecond)
 
   request.Get(TEST_PAGE)
 
-  _, _, err := request.End()
+  resp, _, err := request.End()
 
   if err != nil {
     channel <- ""
   } else {
-    channel <- proxy
-  }  
+    channel <- strings.Replace(proxy, "\r", "", -1)
+  }
 }
 
 func main() {
   bs, err := ioutil.ReadFile(PROXY_LIST_SRC)
 
   if err != nil {
-    return   
+    return
   }
 
   proxyServers := strings.Split(string(bs), "\n")
-  proxyServersCnt := len(proxyServers)
+  proxyServersCnt := len(proxyServers) - 1
 
   channel := make(chan string)
 
@@ -61,18 +61,18 @@ func main() {
     }
 
     ch := proxyServers[start:limit]
-    
+
     start += chunk
 
     go testServers(ch, channel)
   }
 
   file, err := os.Create(PROXY_LIST_DEST)
-  
+
   if err != nil {
     return
   }
-  
+
   defer file.Close()
 
   cnt := 0
@@ -85,7 +85,7 @@ func main() {
     }
 
     cnt += 1
-    
+
     if cnt >= proxyServersCnt {
       break
     }

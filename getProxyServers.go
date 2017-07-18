@@ -39,11 +39,11 @@ func main() {
   }
 
   file, err := os.Create("source-proxy-servers.txt")
-  
+
   if err != nil {
     panic(err)
   }
-  
+
   defer file.Close()
   file.WriteString(body)
 }
@@ -61,7 +61,7 @@ func getHash(cookie *http.Cookie) (string, []error) {
   if err != nil {
     return "", err
   }
-  
+
   regExpr := regexp.MustCompile(`href="` + path + `/([0-9a-z]{32})/"`)
   hash := regExpr.FindStringSubmatch(body)[1]
 
@@ -109,7 +109,7 @@ func getLink(cookie *http.Cookie) (string, []error) {
 func download(cookie *http.Cookie) (string, []error) {
   request := gorequest.New()
 
-  path := "/download"
+  path := "/download/"
   request.Post(PROXY_HOST + path)
 
   request.AddCookie(cookie)
